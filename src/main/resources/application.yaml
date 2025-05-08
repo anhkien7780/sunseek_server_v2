@@ -1,0 +1,10 @@
+ktor:
+    application:
+        modules:
+            - com.server.ApplicationKt.module
+    deployment:
+        port: 8080
+postgres:
+  url: "jdbc:postgresql://localhost:5432/sunseek"
+  user: "postgres"
+  password: "a12345"
