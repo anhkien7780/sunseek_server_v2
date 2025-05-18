@@ -30,7 +30,7 @@ class PostgresRepository : UserRepo, LocationRepo, SessionRepo {
     }
 
     override suspend fun isUserExist(username: String): Boolean = suspendTransaction {
-        val result = UserTable.selectAll().where{
+        val result = UserTable.selectAll().where {
             UserTable.username eq username
         }.map(::toUser).firstOrNull()
         result != null
@@ -104,9 +104,6 @@ class PostgresRepository : UserRepo, LocationRepo, SessionRepo {
     }
 
     override suspend fun isSessionExist(sessionID: String): Boolean = suspendTransaction {
-        val result =
-            SessionTable.selectAll().where { SessionTable.sessionID eq UUID.fromString(sessionID) }.map(::toSession)
-                .firstOrNull()
-        result != null
+        SessionTable.selectAll().where { SessionTable.sessionID eq UUID.fromString(sessionID) }.count() > 0
     }
 }

@@ -15,18 +15,19 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-fun Application.module() {
+fun Application.module(testing: Boolean = true) {
     val postgresRepository = PostgresRepository()
     install(Sessions) {
         cookie<Session>("session_cookie") {
             cookie.sameSite = "Lax"
-            cookie.secure = true
+            cookie.secure = testing.not()
             cookie.httpOnly = true
         }
     }
     install(Authentication) {
         session<Session>("auth-session") {
             validate { session ->
+                println("Validate session: $session")
                 if (postgresRepository.isSessionExist(session.sessionID)) {
                     session
                 } else {

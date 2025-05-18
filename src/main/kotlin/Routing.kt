@@ -10,6 +10,7 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 
 fun Application.configureRouting(postgresRepository: PostgresRepository) {
     install(StatusPages) {
@@ -19,7 +20,7 @@ fun Application.configureRouting(postgresRepository: PostgresRepository) {
     }
     routing {
 
-        route("user/") {
+        route("user") {
             post("register") {
                 try {
                     val registerRequest = call.receive<User>()
@@ -38,13 +39,14 @@ fun Application.configureRouting(postgresRepository: PostgresRepository) {
                 try {
                     val loginRequest = call.receive<User>()
                     val user = postgresRepository.getUser(loginRequest.username) ?: return@post call.respond(
-                        HttpStatusCode.BadRequest, message = "Tài khoản không tồn tại"
+                        HttpStatusCode.NotFound, message = "Tài khoản không tồn tại"
                     )
                     if (loginRequest.password == user.password) {
                         val userID = postgresRepository.getUserID(user.username)
                         postgresRepository.addSession(userID)
                         val session = postgresRepository.getSession(userID)
-                        call.respond(status = HttpStatusCode.OK, message = session)
+                        call.sessions.set(session)
+                        call.respond(HttpStatusCode.OK)
                     } else {
                         call.respond(HttpStatusCode.Unauthorized)
                     }
@@ -62,7 +64,6 @@ fun Application.configureRouting(postgresRepository: PostgresRepository) {
                         } else {
                             call.respond(HttpStatusCode.Conflict, "Xóa phiên đăng nhập thất bại")
                         }
-
                     } catch (ex: Exception) {
                         ex.printStackTrace()
                         call.respond(status = HttpStatusCode.BadGateway, message = "Sự cố máy chủ")
